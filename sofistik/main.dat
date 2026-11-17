@@ -1,0 +1,34 @@
+!+!chapter Material und Querschnitte
+
++prog aqua urs:1
+kopf
+
+
+
+ende
+
+
+!+!chapter Geometrie
+
+-prog sofimshc urs:2
+kopf
+
+syst art 3d gdir negz
+
+steu mesh 2
+steu hmin 0.1
+
+#include ".\input\geometry.dat"
+
+ende
+
+
+!+!chapter Lasten
++prog sofiload urs:3
+kopf
+
+#include ".\input\loads.dat"
+
+ende
+
+

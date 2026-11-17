@@ -1,0 +1,8 @@
+# Rhino-Sicherungsdateien überall ignorieren
+*.3dmbak
+
+# In sofistik nur .dat und .gra versionieren
+/sofistik/**
+!/sofistik/**/
+!/sofistik/**/*.dat
+!/sofistik/**/*.gra

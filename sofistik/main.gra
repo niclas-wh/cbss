@@ -1,0 +1,23 @@
+PROG WING
+$ 2026-7.0.962 17.11.26 , 12:08:47
+KOPF $ nichts zeichnen
+UNIT 0 SET IN $ Standard-Einheitenset
+STEU OPT GSTR WERT MESH
+STEU OPT DARS WERT JA
+$ Grafik    1 | Bild    1 | Layer    1 : nichts zeichnen
+SEIT SPRA 0 BEZ ''
+SIZE DINA URS M 0 RAND NEIN
+SIZ2
+UND  POSI 1 POSL 0 POSR 100 POSU 0 POSO 100
+LF   NR 1 BEME 1
+BEOB TYP BLIC X 1 Y 0 Z 0 ACHS POSZ DREH 0
+AUSW NR 0
+STRU NUME USER
+$ Grafik    2 | Bild    1 | Layer    1 : nichts zeichnen
+SEIT NRST -2 BEZ ''
+SIZ2
+UND  POSI 1 POSL 0 POSR 100 POSU 0 POSO 100
+STRU NUME USER
+$ Einstellungen der interaktiven Sitzung
+iNTE SET 0 PAR1 2 PAR2 1 PAR3 1 PAR4 0 PAR5 0
+ENDE
