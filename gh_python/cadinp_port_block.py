@@ -37,12 +37,17 @@ Teilueberlappungen sowie gekruemmte doppelte Flaechen werden nicht bereinigt.
 Periodische NURBS werden am Parameterbereich formtreu geklemmt;
 schlaegt diese Konvertierung fehl, wird nicht durch Polygone angenaehert.
 Keine Koordinatenumrechnung: unit bezeichnet die Einheit der Eingangszahlen.
-Auch eine einheitenlose Dicke #t_x wird in dieser Einheit interpretiert;
-STO#t_x daher vorzugsweise ohne Einheit definieren, z.B. 0.25 bei unit=m.
+Dicken werden unveraendert als #t_x ohne angehaengte Einheit ausgegeben.
+STO#t_x mit eigener Einheit definieren, z.B. STO#t_2 250[mm].
+Ohne Einheit gelten fuer T die SOFiMSHC-Eingabeeinheiten, nicht unit.
+Einzelsaetze stehen in einer Zeile; wiederholte Saetze bleiben Tabellen.
+Flaechendaten sind eingerueckt; gerade Raender stehen als SARB ; SLNB ...
+in einer Zeile. OUT wird als Standard weggelassen, IN bleibt explizit.
+Vor jeder DAT-Kommentarzeile stehen zwei Leerzeilen, vor/nach LET#cbss_id eine.
 
 Vor dem Include muessen die globalen STO-Variablen berechnet worden sein:
   Linie:   STO#qnr_1 10       (Material kommt aus dem AQUA-Querschnitt)
-  Flaeche: STO#mat_2 1        und STO#t_2 0.25
+  Flaeche: STO#mat_2 1        und STO#t_2 250[mm]
   Optional fuer geo_2: STO#grp_2 4; ohne grp gilt lokal Gruppe 1.
   Pflicht fuer nichtleeres bc_8: STO#bc_8 'PZ'
 geo_x erzeugt ausschliesslich Strukturgeometrie OHNE FIX. #fix_x wird nicht
@@ -170,22 +175,55 @@ def _xyz(point, unit):
 
 
 class _Writer:
-    """Gleiche aufeinanderfolgende Saetze als CADINP-Tabelle schreiben."""
+    """Einzelsaetze inline, wiederholte Saetze als CADINP-Tabelle schreiben."""
 
     def __init__(self):
         self.lines = []
         self.schema = None
+        self.rows = []
+        self.indent = ""
+
+    def _flush(self):
+        if self.schema is None:
+            return
+        command, fields = self.schema
+        if len(self.rows) == 1:
+            tokens = [command]
+            for field, value in zip(fields, self.rows[0]):
+                tokens.extend((field, value))
+            self.lines.append(self.indent + " ".join(tokens))
+        else:
+            self.lines.append(self.indent + command + " " + " ".join(fields))
+            for row in self.rows:
+                self.lines.append(self.indent + "    " + " ".join(row))
+        self.schema = None
+        self.rows = []
+
+    def set_indent(self, spaces):
+        self._flush()
+        self.indent = " " * spaces
 
     def raw(self, text):
-        self.schema = None
-        self.lines.append(text)
+        self._flush()
+        if text.lstrip().startswith("$"):
+            self.lines.extend(("", ""))
+        is_id = text.upper().startswith("LET#CBSS_ID ")
+        if is_id:
+            self.lines.append("")
+        self.lines.append(self.indent + text if text else "")
+        if is_id:
+            self.lines.append("")
 
     def record(self, command, fields, values):
         schema = (command, tuple(fields))
         if schema != self.schema:
-            self.lines.append(command + " " + " ".join(fields))
+            self._flush()
             self.schema = schema
-        self.lines.append("    " + " ".join(str(v) for v in values))
+        self.rows.append(tuple(str(v) for v in values))
+
+    def finish(self):
+        self._flush()
+        return "\n".join(self.lines) + "\n"
 
 
 def _clamped(knots, degree):
@@ -304,6 +342,7 @@ def _face_data(face):
 def _write_face(writer, data, unit, lang):
     surface, boundaries, _ = data
     typ = "TYP" if lang == "de" else "TYPE"
+    writer.set_indent(4)
     if surface is not None:
         for u in range(surface.Points.CountU):
             for v in range(surface.Points.CountV):
@@ -316,8 +355,14 @@ def _write_face(writer, data, unit, lang):
         for knot in surface.KnotsV:
             writer.record("SARN", ("T", "DEGT"), (_num(knot), surface.Degree(1)))
     for kind, parts in boundaries:
-        writer.record("SARB", (typ,), (kind,))
-        _write_curve(writer, parts, unit, lang)
+        boundary = "SARB" if kind == "OUT" else "SARB " + typ + " " + kind
+        if len(parts) == 1 and parts[0][0] == "line":
+            a, b = parts[0][1]
+            writer.raw(boundary + " ; SLNB " + "   ".join(_xyz(a, unit) + _xyz(b, unit)))
+        else:
+            writer.raw(boundary)
+            _write_curve(writer, parts, unit, lang)
+    writer.set_indent(0)
 
 
 def _inputs(component):
@@ -493,7 +538,7 @@ def _render(groups, bc_groups, lang, unit, divisor, debug):
             else:
                 normal = data[2]
                 writer.record("SAR", ("NR" if de else "NO", "MNR" if de else "MNO", "T", "GRP", "NX", "NY", "NZ"),
-                              ("#cbss_id", "#mat_" + suffix, "#t_" + suffix + "[" + unit + "]", g,
+                              ("#cbss_id", "#mat_" + suffix, "#t_" + suffix, g,
                                _num(normal.X), _num(normal.Y), _num(normal.Z)))
                 _write_face(writer, data, unit, lang)
     for index, elements in bc_groups:
@@ -512,7 +557,7 @@ def _render(groups, bc_groups, lang, unit, divisor, debug):
                 # PROP aendert nur FIX auf vorhandenen Flaechen, nicht deren Gruppe.
                 writer.record("SAR", ("NR" if de else "NO", "FIX"), ("PROP", fix))
                 _write_face(writer, data, unit, lang)
-    return "\n".join(writer.lines) + "\n"
+    return writer.finish()
 
 
 def _export(namespace):
