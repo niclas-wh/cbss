@@ -3,20 +3,46 @@
 +prog aqua urs:1
 kopf
 
+norm DIN EN199X-200X-BRIDGE
 
+stah nr 1 art s guet 355
+
+sto#mat_1 1
+sto#mat_2 1
+sto#mat_3 1
+sto#mat_4 1
+sto#mat_5 1
+
+sto#grp_1 1
+sto#grp_2 2
+sto#grp_3 3
+sto#grp_4 4
+sto#grp_5 5
+
+sto#t_1 30[mm]
+sto#t_2 30[mm]
+sto#t_3 30[mm]
+sto#t_4 30[mm]
+sto#t_5 30[mm]
+
+sto#bc_1 "PXPZ"
+sto#bc_2 "PXPZ"
+sto#bc_3 "PP"
 
 ende
 
 
 !+!chapter Geometrie
 
--prog sofimshc urs:2
++prog sofimshc urs:2
 kopf
 
-syst art 3d gdir negz
+echo voll voll
+
+syst art 3d gdir negz gdiv 10000
 
 steu mesh 2
-steu hmin 0.1
+steu hmin 1.0
 
 #include ".\input\geometry.dat"
 
@@ -24,7 +50,7 @@ ende
 
 
 !+!chapter Lasten
-+prog sofiload urs:3
+-prog sofiload urs:3
 kopf
 
 #include ".\input\loads.dat"

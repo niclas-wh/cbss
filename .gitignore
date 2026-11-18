@@ -1,8 +1,13 @@
-# Rhino-Sicherungsdateien überall ignorieren
+# Rhino-Sicherungsdateien im gesamten Repository ignorieren
 *.3dmbak
+*.3dm.rhl
 
-# In sofistik nur .dat und .gra versionieren
+# In sofistik und seinen Unterordnern nur .dat und .gra versionieren
 /sofistik/**
 !/sofistik/**/
 !/sofistik/**/*.dat
 !/sofistik/**/*.gra
+
+# Ordner mit führendem Punkt oder Unterstrich überall ignorieren
+.*/
+_*/
