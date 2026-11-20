@@ -1,6 +1,9 @@
-# Rhino-Sicherungsdateien im gesamten Repository ignorieren
+# Rhino-Sicherungsdateien und Bilddateien im gesamten Repository ignorieren
 *.3dmbak
 *.3dm.rhl
+*.png
+*.jpg
+*.jpeg
 
 # In sofistik und seinen Unterordnern nur .dat und .gra versionieren
 /sofistik/**
@@ -11,3 +14,8 @@
 # Ordner mit führendem Punkt oder Unterstrich überall ignorieren
 .*/
 _*/
+
+# Bilddateien mit "Readme" im Namen nicht ignorieren
+!*Readme*.png
+!*Readme*.jpg
+!*Readme*.jpeg
